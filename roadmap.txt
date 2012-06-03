@@ -18,7 +18,8 @@ Planned features:
 - Download and store comics locally to the tablet for offline viewing.
 - Retrieve data directly from ComicRack. (Not sure I want this, I don't want to have ComicRack running constantly.)
 - Integrate / use the ComicRack Web Viewer plugin. (Not sure I want this, I don't want to have ComicRack running constantly.)
-- Replace the php backend with a ComicRack plugin. In my opinion this is the only reason why I would want to keep ComicRack running.
-
+- Replace the php backend with a ComicRack plugin. (In my opinion this is the only reason why I would want to keep ComicRack running.)
+- Image cache management, currently extracted pages are never deleted.
+- Recreate cover thumbnails.
 
 
