@@ -1,0 +1,21 @@
+This document describes the features I plan to add to ComicViewer.
+
+Currently this project is still in the testing phase until I deem it worthy for a public release on GitHub.
+
+0.1 - first public release:
+- Add user management pages.
+- Add comic book detail page, showing the ComicRack metadata from ComicInfo.xml
+- Add global search feature. Now ComicViewer can only filter in the current folder.
+- Think of a better name than ComicViewer.
+- Create temporary application icons.
+
+
+Planned features:
+- Create custom (smart)lists.
+- Browse on Series.
+- Import ComicDB.xml from ComicRack. Only useful for (smart)lists?
+- Retrieve data directly from ComicRack. Not sure I want this, I don't want to have ComicRack running constantly.
+- Package ComicViewer into native app (e.g. via Phonegap).
+- Download and store comics locally to the tablet for offline viewing.
+
+
