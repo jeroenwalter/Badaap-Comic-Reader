@@ -1,0 +1,30 @@
+ComicViewer is a web-based application for accessing and reading ALL your comics on the iPad and possibly other tablets.
+
+Why another comic viewer?
+Most comic book viewers for the iPad store the comics locally on the iPad.
+Very large comic collections won't fit on a tablet, so I constantly have to delete comics from the iPad and upload new ones to it.
+This has 2 major problems:
+1. I have to decide beforehand what I want to read, which I don't want to.
+2. I have to know which comics I have already read.
+
+Problem 1 can be solved by giving my tablet access to all the comics I have.
+Problem 2 can be solved by letting the tablet store which comics I have read.
+
+Both problems can be solved by creating a web-app with a server-side component.
+
+ComicViewer is composed of a server-side php application and a client-side javascript application.
+
+
+Features:
+- Folder-based browsing.
+- ComicRack metadata import.
+- Support for multiple users: ComicViewer stores the reading state of each comic per user.
+- SQLite3 backend.
+- Supports CBR/CBZ files.
+
+Requirements:
+- A tablet capable of running Sencha Touch applications (only tested on an iPad 1 + 3).
+- A webserver with PHP > 5.
+- Comics.
+
+
