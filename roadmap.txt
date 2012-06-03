@@ -8,14 +8,17 @@ Currently this project is still in the testing phase until I deem it worthy for 
 - Add global search feature. Now ComicViewer can only filter in the current folder.
 - Think of a better name than ComicViewer.
 - Create temporary application icons.
-
+- Implement the view to modify the user settings.
 
 Planned features:
 - Create custom (smart)lists.
 - Browse on Series.
 - Import ComicDB.xml from ComicRack. Only useful for (smart)lists?
-- Retrieve data directly from ComicRack. Not sure I want this, I don't want to have ComicRack running constantly.
 - Package ComicViewer into native app (e.g. via Phonegap).
 - Download and store comics locally to the tablet for offline viewing.
+- Retrieve data directly from ComicRack. (Not sure I want this, I don't want to have ComicRack running constantly.)
+- Integrate / use the ComicRack Web Viewer plugin. (Not sure I want this, I don't want to have ComicRack running constantly.)
+- Replace the php backend with a ComicRack plugin. In my opinion this is the only reason why I would want to keep ComicRack running.
+
 
 
