@@ -20,7 +20,11 @@
 Ext.define('Comic.view.ComicInfo', {
   extend: 'Ext.form.Panel',
   xtype: 'comicinfoview',
-
+  requires: [
+    "Ext.field.Url",
+    'Ext.form.FieldSet',
+  ],
+  
   config: {
     items: [
       {
