@@ -1,0 +1,39 @@
+* {	margin: 0px; padding: 0px; }
+body
+{
+  padding: 30px;
+  font-family: Calibri, Verdana, "Sans Serif";
+  font-size: 12px;
+}
+table
+{
+  width: 800px;
+}
+
+th, td
+{
+  padding: 3px;
+}
+
+.right
+{
+  text-align: right;
+}
+
+h1
+{
+  color: #FF0000;
+  border-bottom: 2px solid #000000;
+  margin-bottom: 15px;
+  font-size: 3em;
+}
+
+h2
+{
+  color: #2222FF;
+  margin-bottom: 15px;
+  font-size: 2em;
+}
+
+p { margin: 10px 0px; }
+p.faded { color: #A0A0A0; }

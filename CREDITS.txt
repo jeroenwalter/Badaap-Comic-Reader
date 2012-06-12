@@ -1,0 +1,79 @@
+--------------------------------------------------
+  This file is part of Badaap Comic Reader.
+  
+  Copyright (c) 2012 Jeroen Walter
+  
+  Badaap Comic Reader is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Badaap Comic Reader is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Badaap Comic Reader.  If not, see <http://www.gnu.org/licenses/>.
+--------------------------------------------------
+
+Badaap Comic Reader uses code and resources from the following projects.
+In some cases the code is modified to fit the application requirements.
+
+--------------------------------------------------
+Source code 
+
+Sencha Touch 2.0.1 GPL version
+
+
+User management functions by Dan Storm (modified for SQLite):
+https://github.com/Repox/SimpleUsers
+
+\app\view\ImageViewer.js based on some version of the Sencha ImageViewer component:
+http://www.sencha.com/forum/showthread.php?197903-Pinch-Image-with-carousel-and-working-fine
+
+ExtDirect php server by J. Bruni:
+http://www.sencha.com/forum/showthread.php?102357-Extremely-Easy-Ext.Direct-integration-with-PHP
+
+lib\jmq.js based on 
+jQuery Message Queuing - v1.0 - 1/5/2010 by Ben Alman (modified to remove jQuery dependencies)
+http://benalman.com/projects/jquery-message-queuing-plugin/
+ 
+sprintf() for JavaScript 0.7-beta1
+http://www.diveintojavascript.com/projects/javascript-sprintf
+
+strnatcasecmp.js
+http://jsphp.co/jsphp/fn/view/strnatcasecmp
+
+strncmp.js
+http://phpjs.org/functions/strncmp:543
+
+IOS5 toggle field by gypsie:
+http://www.sencha.com/forum/showthread.php?192358-iOS-5-Toggle
+
+Icon spinner field by Hiren Dave:
+http://davehiren.blogspot.nl/2012/04/sencha-touch-spinner-field-change.html
+
+Add to home screen script by Matteo Spinelli:
+http://cubiq.org/add-to-home-screen
+
+
+---------------------------------------------------
+
+not used:
+Ext.ux.Cover by Maximiliano Fierro
+http://market.sencha.com/addon/ext.ux.cover-1
+
+---------------------------------------------------
+
+Useful project for inspecting the sqlite database:
+http://phpliteadmin.googlecode.com
+
+---------------------------------------------------
+Resources (images, icons, fonts etc)
+
+Comic_Book.ttf - Comic Book font by Neale Davidson
+http://www.pixelsagas.com/viewfont.php?fontid=96
+
+Icons
+http://icons.mysitemyway.com/black-white-pearls-icons-arrows/

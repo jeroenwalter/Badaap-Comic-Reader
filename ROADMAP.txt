@@ -1,0 +1,33 @@
+This document describes the features I plan to add to Badaap Comic Reader.
+
+Currently this project is still in the testing phase until I deem it worthy for a public release on GitHub.
+
+0.1 - first public release:
+- Added user management pages.
+- Added comic book detail page, showing the ComicRack metadata from ComicInfo.xml
+- Created temporary application icons.
+- Implemented the view to modify the user settings.
+
+Planned features:
+- Add global search feature. Now BCR can only filter in the current folder.
+- Browse on Series/Author/other fields.
+- Create custom (smart)lists.
+- Import ComicDB.xml from ComicRack. Only useful for (smart)lists?
+- Download and store comics locally to the tablet for offline viewing.
+- Retrieve data directly from ComicRack. (Not sure I want this, I don't want to have ComicRack running constantly.)
+- Integrate / use the ComicRack Web Viewer plugin. (Not sure I want this, I don't want to have ComicRack running constantly.)
+- Replace the apache/php backend with a ComicRack plugin. (In my opinion this is the only reason why I would want to keep ComicRack running.)
+- Image cache management, currently extracted pages are never deleted.
+- Recreate cover thumbnails.
+- Theming support: icons, colors, fonts, images 
+- Add Sencha Touch device profiles
+- Optimize the Sencha Touch deployment for size/performance
+- Package ComicViewer into native app (e.g. via Phonegap).
+- Dropbox/other cloud storage support for downloading comics into local storage. If possible....
+- Multipage thumbnail preview
+- Show page thumbnail while sliding the page slider.
+- Improve icons and layout
+- Use image with type FrontCover for cover thumbnail instead of first image.
+
+
+

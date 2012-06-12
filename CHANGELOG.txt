@@ -1,8 +1,7 @@
-This document describes the features I plan to add to ComicViewer.
+ComicViewer changelog.
 
-Currently this project is still in the testing phase until I deem it worthy for a public release on GitHub.
 
-0.1 - first public release:
+--- 0.1 - first public release:
 - Add user management pages.
 - Add comic book detail page, showing the ComicRack metadata from ComicInfo.xml
 - Add global search feature. Now ComicViewer can only filter in the current folder.
@@ -10,7 +9,7 @@ Currently this project is still in the testing phase until I deem it worthy for 
 - Create temporary application icons.
 - Implement the view to modify the user settings.
 
-Planned features:
+--- Planned features:
 - Create custom (smart)lists.
 - Browse on Series.
 - Import ComicDB.xml from ComicRack. Only useful for (smart)lists?
@@ -21,5 +20,6 @@ Planned features:
 - Replace the php backend with a ComicRack plugin. (In my opinion this is the only reason why I would want to keep ComicRack running.)
 - Image cache management, currently extracted pages are never deleted.
 - Recreate cover thumbnails.
+
 
 

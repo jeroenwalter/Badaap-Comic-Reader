@@ -1,0 +1,56 @@
+---------------------------------------------------
+Source code build instructions
+
+These steps are only necessary if you want to modify and build the Badaap Comic Reader (BCR) from its sources. 
+You want to do this if you want to test if the changes you made are functional in a production build.
+
+They are NOT NECESSARY if you have downloaded a pre-packaged production build.
+
+Requirements:
+- Apache webserver >= 2.2 with PHP >= 5.3.
+- A working Sencha Touch 2.0 and Sencha SDK Tools build environment.
+
+*** Sencha Touch installation ***
+In order to build BCR, you must download and install the Sencha Touch 2.0 libraries and the Sencha SDK Tools.
+
+Sencha Touch 2.0
+http://www.sencha.com/products/touch/download/
+
+Sencha SDK Tools
+http://www.sencha.com/products/sdk-tools/download
+
+Check the Sencha.com website and forums for tutorials and how-to on how to setup Sencha Touch and the SDK tools.
+
+Badaap Comic Reader v0.1 is tested and build with Sencha Touch 2.0.1.1 and the Sencha SDK Tools 2.0.0-beta3.
+
+
+In order to develop for BCR build, perform the following steps:
+1. Checkout the BCR source files to a folder on your harddrive.
+2. Unpack the Sencha Touch 2.0 libraries to the sdk folder.
+3. Make the folder where you unpacked BCR to accessible via apache.
+
+You now have a development environment.
+This means that the application is using Sencha Touch debug code and the Sencha Microloader for automatically resolving file dependencies.
+
+
+NB: The app.json file contains the full url of your development installation of BCR.
+This is needed for the Sencha SDK Tools to find file dependencies, so make sure this url works.
+
+In order to create a production build, perform the following steps:
+1. Very important: Make sure there are no javascript errors or warnings when running the development code. Use for instance the Chrome developer tools to check this.
+2. Run build_production.bat, this will create a folder build\production that contains a minified version of the application.
+
+If you look in the app.json file, you will notice that the url points to 'index-dev.php' instead of 'index.php'
+The reason for this is the following.
+In order to make a BCR build via the Sencha Tools, the Sencha dependency checker opens the website.
+We must make sure that this always occurs via a logged in user, otherwise the check fails.
+'index-dev.php' always logs in via the default admin account. 
+This assumes that the admin account still exists and that its password wasn't changed.
+To ensure this, a new sqlite database 'build.sqlite' is created each time you build the project.
+
+
+
+
+
+
+

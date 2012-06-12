@@ -1,4 +1,6 @@
-ComicViewer is a web-based application for accessing and reading ALL your comics on the iPad and possibly other tablets.
+Badaap Comic Reader
+
+Badaap Comic Reader (BCR) is a web-based application for accessing and reading your comics on the iPad and possibly other tablets.
 
 Why another comic viewer?
 Most comic book viewers for the iPad store the comics locally on the iPad.
@@ -12,20 +14,25 @@ Problem 2 can be solved by letting the tablet store which comics I have read.
 
 Both problems can be solved by creating a web-app with a server-side component.
 
-ComicViewer is composed of a server-side php application and a client-side javascript application.
-
+BCR is composed of a server-side php application and a client-side javascript application using Sencha Touch.
 
 Features:
 - ComicRack metadata import.
-- Support for multiple users: ComicViewer stores the reading state of each comic per user.
+- Support for multiple users: BCR stores the reading state of each comic per user.
 - Sencha Touch 2.0 front-end.
 - Folder-based browsing.
 - SQLite3 backend.
-- Supports CBR/CBZ files.
+- Supports CBZ files and optionally CBR if the php_rar extension is installed.
 
 Requirements:
 - A tablet capable of running Sencha Touch 2.0 applications (only tested on an iPad 1 + 3).
 - A webserver with PHP >= 5 (tested on Apache/2.2.19 (Win32) PHP/5.3.6 running on Windows 7 32bit)
-- Comics.
+- Comics. Lots of them. More then can fit on your tablet.
 
 
+Security:
+
+I've create multi-user support so members of my family each have their own settings and comic progress stats.
+Badaap Comic Reader is meant to be used this way, not as a public website.
+The security of Badaap Comic Reader therefore is very simple and inadequate for a public website.
+Maybe this will change in the future, but for now, keep this in mind. 

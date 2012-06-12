@@ -1,0 +1,228 @@
+/*
+  This file is part of Badaap Comic Reader.
+  
+  Copyright (c) 2012 Jeroen Walter
+  
+  Badaap Comic Reader is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Badaap Comic Reader is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Badaap Comic Reader.  If not, see <http://www.gnu.org/licenses/>.
+*/  
+
+/**
+ * Example of an initial loading indicator.
+ * It is recommended to keep this as minimal as possible to provide instant feedback
+ * while other resources are still being loaded for the first time
+ */
+html, body {
+    height: 100%;
+    background-color: #1985D0
+}
+
+#appLoadingIndicator {
+    position: absolute;
+    top: 50%;
+    margin-top: -15px;
+    text-align: center;
+    width: 100%;
+    height: 30px;
+    -webkit-animation-name: appLoadingIndicator;
+    -webkit-animation-duration: 0.5s;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-direction: linear;
+}
+
+#appLoadingIndicator > * {
+    background-color: #FFFFFF;
+    display: inline-block;
+    height: 30px;
+    -webkit-border-radius: 15px;
+    margin: 0 5px;
+    width: 30px;
+    opacity: 0.8;
+}
+
+@-webkit-keyframes appLoadingIndicator{
+    0% {
+        opacity: 0.8
+    }
+    50% {
+        opacity: 0
+    }
+    100% {
+        opacity: 0.8
+    }
+}
+
+/*
+@font-face {
+	font-family: Comic_Book;
+	src: url('Comic_Book.ttf');
+}
+*/
+.filesystem-list {
+  background: #FFF;
+  
+  /*font-family: Comic_Book; */
+}
+
+.filesystem-list-item {
+  border-top: 1px solid #dedede;
+  padding: 0.65em;
+  height: 80px;
+  
+  margin: 0.4em;
+  padding: 0.65em;
+  background: #EEE;
+  border: 1px solid #dedede;
+  height: 80px;
+  
+}
+
+.date_last_read {
+  margin-left: 10px;
+  background: #DDE;
+  border: 1px solid #dedede;
+  padding: 2px;
+}
+
+.filesystem-list-item:last-child {
+  border-bottom: 1px solid #dedede;
+}
+
+.filesystem-list .theme-a{
+background: transparent url(img/background_1.jpg) 0 0;
+//  background: #FFF;
+  
+}
+
+.filesystem-list-item  .theme-a {
+  border-top: 1px solid #dedede;
+  margin: 0.4em;
+  padding: 0.65em;
+  background: rgba(255,255,255,0.25);
+  border: 1px solid #145072;
+  height: 80px;
+  border-radius: .4em;
+  
+  /* slows down scrolling:
+  
+  margin-top: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+  
+  -moz-border-radius: .4em;
+  -webkit-border-radius: .4em;
+  border-radius: .4em;
+  
+  // http://www.colorzilla.com/gradient-editor/
+  background: -moz-linear-gradient(top,  rgba(0,0,0,0.65) 0%, rgba(0,0,0,0) 100%); // FF3.6+ 
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,0.65)), color-stop(100%,rgba(0,0,0,0))); // Chrome,Safari4+ 
+  background: -webkit-linear-gradient(top,  rgba(0,0,0,0.65) 0%,rgba(0,0,0,0) 100%); // Chrome10+,Safari5.1+ 
+  background: -o-linear-gradient(top,  rgba(0,0,0,0.65) 0%,rgba(0,0,0,0) 100%); // Opera 11.10+ 
+  background: -ms-linear-gradient(top,  rgba(0,0,0,0.65) 0%,rgba(0,0,0,0) 100%); // IE10+ 
+  background: linear-gradient(top,  rgba(0,0,0,0.65) 0%,rgba(0,0,0,0) 100%); // W3C 
+
+  
+  */
+}
+
+
+.filesystem-list-item-label {
+  //background: #0F0;
+  padding: 0;
+}
+
+.filesystem-list-item even {
+  background: #000;
+}
+
+.filesystem-list-item odd {
+  background: #FFF;
+}
+
+.filesystem-list-item span {
+  //background: #F00;
+}
+
+.filesystem-list-item img {
+  float: left;
+  top: 10px;
+  height: 60px;
+  //background: #00F;
+  margin-right: 10px;
+}
+
+.filesystem-list-item .name {
+  margin-left: 70px;
+  min-height: 50px;
+}
+
+.filesystem-list-item .folder {
+}
+
+.filesystem-list-item .comic {
+  
+}
+
+.filesystem-list-item .progress {
+  float: left;
+  font-size: 11px;
+  font-weight: bold;
+  padding: .2em .5em;
+  margin-right: 1em;
+
+  -moz-border-radius: 1em;
+  -webkit-border-radius: 1em;
+  border-radius: 1em;
+
+  border: 1px solid #145072;
+  background: #2567AB;
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 -1px 1px #145072;
+  background-image: -webkit-gradient(linear,left top,left bottom,from(#5F9CC5),to(#396B9E));
+  background-image: -webkit-linear-gradient(#5F9CC5,#396B9E);
+  background-image: -moz-linear-gradient(#5F9CC5,#396B9E);
+  background-image: -ms-linear-gradient(#5F9CC5,#396B9E);
+  background-image: -o-linear-gradient(#5F9CC5,#396B9E);
+  background-image: linear-gradient(#5F9CC5,#396B9E);
+}
+
+.filesystem-list-item .date_last_read {
+  float: right;
+}
+
+
+.comicinfo-header {
+  
+
+}
+  
+.comicinfo-header img {
+  margin-right: 1em;
+  float: left;
+}
+
+.comicinfo-header .series {
+  color: #2567AB;
+  font-size: 1.5em;
+  font-weight: bold;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.comicinfo-header .title {
+  color: #2567AB;
+  font-size: 1em;
+  font-weight: bold;
+  font-family: Arial, Helvetica, sans-serif;
+}
+

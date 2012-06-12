@@ -1,0 +1,75 @@
+/*
+  IOS5 toggle
+http://www.sencha.com/forum/showthread.php?192358-iOS-5-Toggle
+*/
+
+/* ------------------ *//* IOS5 TOGGLE
+/* ------------------ */
+.ios5_toggle .x-toggle {
+    float:right;
+    top:.45em;
+    right:0.25em;
+    border: 0.1em solid #888888;
+    width: 4.7em;
+    height:1.7em;
+}
+
+
+.ios5_toggle .x-thumb{
+    width: 1.6em; /*adjust track*/
+}
+
+
+.ios5_toggle .x-thumb:before {
+    width: 1.7em;
+    height:1.7em;
+    top:  -.06em;
+    left: -.06em;
+    
+    
+    box-shadow: inset 0 2px 1px white, inset 0 -2px 1px white ;
+    background-color: #dfdfdf !important;    
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%,  from(#dfdfdf), to(#ffffff));
+}
+
+
+.ios5_toggle .x-toggle-on {
+    background-color: #369aee;
+     background-image: -webkit-gradient(linear, 0% 0%, 0% 100%,  from(#007fea), to(#6EAFE6));
+     -webkit-box-shadow:  inset .4em .9em .1em 0 rgba(0,0,0,0.05), inset .1em .1em .3em 0 rgba(0,0,0,0.4);
+    box-shadow: inset .4em .9em .1em 0 rgba(0,0,0,0.1), inset .1em .1em .3em 0 rgba(0,0,0,0.4);
+}
+
+
+.ios5_toggle .x-toggle-on:before {
+    position:absolute;
+    content:'ON';
+    font-size: 1.0em;
+    font-weight: bold;
+    font-family: Arial, Helvetica, sans-serif;
+    letter-spacing:-.05em;
+    color: #fff;
+    left: 1em;
+    top: .28em;
+}
+
+
+.ios5_toggle .x-toggle-off {
+    background-color: #fff !important;
+    background-image: none;
+    -webkit-box-shadow:  inset -.4em .9em .1em 0 rgba(0,0,0,0.05), inset -.1em .1em .3em 0 rgba(0,0,0,0.4);
+    box-shadow: inset -.4em .9em .1em 0 rgba(0,0,0,0.1), inset -.1em .1em .3em 0 rgba(0,0,0,0.4);
+}
+
+
+.ios5_toggle .x-toggle-off:before {
+    position:absolute;
+    content:'OFF';
+    font-size: 1.0em;
+    font-weight: bold;
+    font-family: Arial, Helvetica, sans-serif;
+    letter-spacing:-.05em;
+    color: #999;
+    left: 2em;
+    top: .28em;
+}

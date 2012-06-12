@@ -1,0 +1,87 @@
+--------------------------------------------------
+Badaap Comic Reader (BCR) Installation instructions
+
+First a note on Security:
+I've create multi-user support so members of my family each have their own settings and comic progress stats.
+Badaap Comic Reader is meant to be used this way, not as a public website.
+The security of Badaap Comic Reader therefore is very simple and inadequate for a public website.
+Maybe this will change in the future, but for now, keep this in mind. 
+
+
+Requirements:
+- Windows XP/Vista/7
+- Apache webserver >= 2.2 with PHP >= 5.3.
+- Comics, preferably in CBZ format containing the ComicInfo.xml file created by ComicRack.
+
+*** Apache installation ***
+If you don't have a working Apache and PHP installation, you can install the WAMP server from http://www.wampserver.com/
+No additional addons are required.
+NB: WampServer is not meant to be used as a production server, so beware of security risks. Check the wampserver site for more info.
+
+*** PHP installation ***
+After installing WAMPServer, make sure the following extensions are enabled:
+- sqlite3
+- gd
+- SimpleXML
+- zip
+- [optional] rar for CBR support. 
+
+These can easily be turned on via the WampServer tray icon via "PHP > PHP extensions".
+
+A note about CBR Support:
+This is a bitch to install, as it's not distributed with most php installations, so finding the correct dll file is hard. 
+Personnaly I wouldn't bother, I just convert all comics to CBZ in ComicRack.
+This has the added advantage that ComicRack will write the ComicInfo.xml file into the CBZ file. 
+ComicRack will not change CBR files (due to rar licensing restrictions).
+However make sure you enabled this option in the ComicRack settings, because I think this is disabled by default.
+The setting is "Advanced > Books > Allow writing of Book info into files", turn it on.
+
+
+*** BCR installation ***
+Put the BCR files in a folder accessible via Apache.
+What I did is to create an apache alias directory to that folder.
+You can do this via the WampServer tray icon menu via "Apache > Alias directories > Add an alias".
+By default, WampServer creates a very restrictive alias, allowing only access from localhost.
+As you want to access the site via your tablet, this needs to be fixed.
+So edit the alias, also via the tray icon, and modify the permissions accordingly.
+
+These are my complete alias settings:
+
+Alias /comic "d:/bcr/comic/" 
+
+<Directory "d:/bcr/comic/">
+   Options Indexes FollowSymLinks MultiViews
+   AllowOverride all
+   Require all granted
+</Directory>
+
+The url to my BCR install is now http://localhost/comic
+
+NB: the alias created by WampServer has a trailing slash. Remove this, it makes life easier.
+
+So 
+Alias /comic/ "d:/bcr/comic/"
+becomes
+Alias /comic "d:/bcr/comic/" 
+
+
+*** Configuration ***
+Open config.php in a text editor and change the following options:
+
+Absolute path to the database file. You don't want to have this accessible via your webserver, so this default should be changed.
+$options["database"]= dirname(__FILE__)."/comics.sqlite"; 
+
+Absolute path to the folder where you have all your comics.
+$options["comicsfolder"]= "J:\\comics"; 
+
+Next open the website.
+If the database doesn't exist yet, a new one is created.
+By default one user is created with administrator access level.
+The login is: admin
+The password is: admin
+
+You can manage users via admin/usermanagement.php
+
+
+
+
