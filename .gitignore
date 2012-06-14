@@ -32,6 +32,9 @@ local.properties
 
 #Sencha Touch SDK
 sdk
+archive
+build
+
 
 #Badaap Comic Reader files and cache folders
 cache
