@@ -1,4 +1,4 @@
-ComicViewer changelog.
+Badaap Comic Reader changelog.
 
 
 --- 0.1 - first public release:
@@ -8,6 +8,11 @@ ComicViewer changelog.
 - Think of a better name than ComicViewer.
 - Create temporary application icons.
 - Implement the view to modify the user settings.
+
+--- 0.2 [2012/06/15]
+- path to comics folder no longer stored in the database, BCR now always uses $options["comicsfolder"]
+- fixed error while loading the Comic Info page
+
 
 --- Planned features:
 - Create custom (smart)lists.

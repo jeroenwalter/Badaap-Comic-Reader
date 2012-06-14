@@ -2,7 +2,7 @@
 
 pushd .
 
-call sencha app build production
+call sencha app build package
 
 popd
 
