@@ -30,6 +30,13 @@ local.properties
 # PDT-specific
 .buildpath
 
+#Sencha Touch SDK
+sdk
+
+#Badaap Comic Reader files and cache folders
+cache
+covers
+comics.sqlite
 
 #################
 ## Visual Studio
