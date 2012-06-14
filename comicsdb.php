@@ -26,7 +26,7 @@ require_once(dirname(__FILE__)."/config.php");
 require_once(dirname(__FILE__)."/users.php");
 
 
-define("APP_VERSION", "0.1");
+define("APP_VERSION", "0.2"); // numbering will be MAJOR.MINOR
 
 define("COMIC_DB_VERSION", 2);
 
