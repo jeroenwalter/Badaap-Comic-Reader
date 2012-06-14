@@ -61,6 +61,7 @@ class Comics
   public function __construct()
   {
     global $comicsdb;
+    global $options;
     $this->db = $comicsdb->get();
     
     $this->ReadSettings();
@@ -77,13 +78,13 @@ class Comics
     
     // This is the absolute path to the folder containing the comic files.
     
-    if (realpath($this->settings["comics_folder"]) === false)
+    if (realpath($options["comicsfolder"]) === false)
     {
-      echo "The comics path '" . $this->settings["comics_folder"] . "' does not exist."; 
+      echo "The comics path '" . $options["comicsfolder"] . "' does not exist."; 
       die;
     }
     
-    $this->abs_comics_folder = realpath($this->settings["comics_folder"]) . DIRECTORY_SEPARATOR;
+    $this->abs_comics_folder = realpath($options["comicsfolder"]) . DIRECTORY_SEPARATOR;
     $this->abs_covers_folder = realpath($this->settings["covers_folder"]) . DIRECTORY_SEPARATOR;
   }
 

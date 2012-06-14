@@ -28,7 +28,7 @@ require_once(dirname(__FILE__)."/users.php");
 
 define("APP_VERSION", "0.1");
 
-define("COMIC_DB_VERSION", 1);
+define("COMIC_DB_VERSION", 2);
 
 // Log levels
 define("SL_DEBUG", 0);
@@ -289,7 +289,7 @@ class ComicsDB
         );");
         
       $this->db->exec("INSERT INTO settings (key,value) VALUES ('version','".COMIC_DB_VERSION."');");
-      $this->db->exec("INSERT INTO settings (key,value) VALUES ('comics_folder','".$options["comicsfolder"]."');");
+      
       $this->db->exec("INSERT INTO settings (key,value) VALUES ('cache_folder','cache');"); // temporary extracted pages and thumbnails
       $this->db->exec("INSERT INTO settings (key,value) VALUES ('covers_folder','covers');"); 
       $this->db->exec("INSERT INTO settings (key,value) VALUES ('last_scan_time','');");
@@ -307,6 +307,15 @@ class ComicsDB
       $this->Log(SL_INFO, "UpdateDatabase", "Database created");
       
       
+    }
+
+   
+    $this->Log(SL_INFO, "UpdateDatabase", "Database version ". $version);
+    
+    if ($version < 2)
+    {
+      // $options["comicsfolder"] is no longer stored in the database.
+      $this->db->exec("DELETE FROM settings WHERE key = 'comics_folder';");
     }
     
     if ($version < COMIC_DB_VERSION)

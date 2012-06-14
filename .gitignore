@@ -39,7 +39,7 @@ build
 #Badaap Comic Reader files and cache folders
 cache
 covers
-comics.sqlite
+*.sqlite
 
 #################
 ## Visual Studio
