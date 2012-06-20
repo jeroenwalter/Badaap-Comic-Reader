@@ -18,6 +18,34 @@
   along with Badaap Comic Reader.  If not, see <http://www.gnu.org/licenses/>.
 */  
   
+
+
+
+function global_exception_handler($e) {
+  global $log;
+  $log->logCrit($e);
+  //exit('Houston! We have a problem: '.$e);
+}
+
+
+function global_error_handler($no,$str,$file,$line) 
+{
+  global $log;
+  $caller = debug_backtrace(false); 
+  $name = "Error";
+  if ($caller[1] && $caller[1]["function"] == "trigger_error")
+    $name = (isset($caller[2]))?$caller[2]["function"]:$name;
+  else
+    $name = (isset($caller[2]))?$caller[2]["function"]:((isset($caller[1]))?$caller[1]["function"]:$name);
+
+  $log->logError("$name: '$str' in $file : $line");
+}
+
+set_exception_handler('global_exception_handler');
+set_error_handler('global_error_handler');
+
+      //restore_error_handler();
+
 $path = dirname(__FILE__);
 
 // avoid warning about already started sessions.
@@ -38,6 +66,18 @@ if( !$SimpleUsers->logged_in )
 require_once($path."/image.php");
 
 
+// This actually works to catch Fatal errors... 
+function shutdown() 
+{ 
+  $a = error_get_last(); 
+  if ($a != null)
+  {
+    print_r("Unhandled errors: "); 
+    print_r($a); 
+  }
+  // else no errors
+} 
+register_shutdown_function('shutdown'); 
 
 // TODO: automatically clear cache, all files older than some date, or leave at most the 1000 newest files?
 
@@ -309,12 +349,6 @@ class Comics
     return comics;
   }
   
-  //////////////////////////////////////////////////////////////////////////////
-  public function Log($severity, $source, $message)
-  {
-    global $comicsdb;
-    $comicsdb->Log($severity, $source, $message);
-  }
     
   //////////////////////////////////////////////////////////////////////////////
   public function GetComicsFolder()
@@ -381,7 +415,12 @@ class Comics
     }
   }
   
-  
+  // Log from browser via Ext.Direct
+  public function Log($severity, $source, $message)
+  {
+    DoLog($severity, $source, $message);
+  }
+
   //////////////////////////////////////////////////////////////////////////////
   public function RemoveSeries($series_id)
   {
@@ -769,6 +808,12 @@ class Comics
     }
       
     list($filelist, $comicinfo) = $this->ParseComicArchive($abs_filename);
+    if (gettype($filelist) == 'string')
+    {
+      $this->Log(SL_ERROR, "AddComic", "File: '$abs_filename' Error: $filelist");
+      return array("id" => -1, "status" => "INVALID_ARCHIVE");
+    }
+    
     if (count($filelist) == 0)
     {
       $this->Log(SL_ERROR, "AddComic", "Comic has no pages: " . $abs_filename);
@@ -850,7 +895,7 @@ class Comics
     if (!$this->cbr_supported)
     {
       $this->Log(SL_WARNING, "ParseCBR", "CBR files not supported, because of missing php_rar extension.");
-      return NULL;
+      return "ParseCBR: CBR files not supported, because of missing php_rar extension.";
     }
     
     $rar_file = rar_open($filename);
@@ -858,13 +903,13 @@ class Comics
     if ($rar_file == FALSE)
     {
       $this->Log(SL_WARNING, "ParseCBR", "$filename not a rar file.");
-      return NULL;
+      return "ParseCBR: $filename not a rar file.";
     }
         
     $entries = rar_list($rar_file);
         
     if ($entries === FALSE)
-      die("Failed fetching entries");
+      return "ParseCBR: Failed fetching entries";
     
     $filelist = array();
     $comicinfo = null;
@@ -895,9 +940,14 @@ class Comics
   public function ParseCBZ($filename)
   {
     $zip = new ZipArchive();
-    $zip->open($filename) or die("cannot open $filename!\n");
     $filelist = array();
     $comicinfo = null;
+
+    if (!$zip->open($filename))
+    {
+      trigger_error("ParseCBZ: cannot open $filename!\n", E_USER_ERROR);
+      return "ParseCBZ: cannot open $filename!";
+    }
     
     for ($i = 0; $i < $zip->numFiles; $i++) 
     {
@@ -975,7 +1025,7 @@ class Comics
     else
     {
       // unsupported format
-      return NULL;
+      return "ParseComicArchive: unsupported format";
     }
   }
   
@@ -988,6 +1038,12 @@ class Comics
       return;
       
     list($filelist, $comicinfo) = $this->ParseComicArchive($comic["filename"]);
+    
+    if (gettype($filelist) == 'string')
+    {
+      $this->Log(SL_ERROR, "ExtractComicArchive", $filelist);
+      return;
+    }
     
     for ($i = 0; $i < count($filelist); $i++)
       $this->InternalGetPage($comic_id, $i, 1024, $filelist);
@@ -1109,7 +1165,7 @@ class Comics
         "page" => $page_id,
       	"width" => 100,	
         "height" => 100, 
-        "src" => "img/invalid_page.png",
+        "src" => "resources/images/no_image_available.jpg",
         "error" => "COMIC_NOT_FOUND"
         );
     }
@@ -1120,7 +1176,7 @@ class Comics
         "page" => $page_id,
       	"width" => 100,	
         "height" => 100, 
-        "src" => "img/invalid_page.png",
+        "src" => "resources/images/no_image_available.jpg",
         "error" => "INVALID_PAGE_NR"
         );
     }
@@ -1130,6 +1186,18 @@ class Comics
     // Extract the page from the comic archive to a temp file in the cache folder.
     if (!$filelist)
       list($filelist, $comicinfo) = $this->ParseComicArchive($this->GetComicsFolder() . DIRECTORY_SEPARATOR . $comic["filename"]);
+    
+    if (gettype($filelist) == 'string')
+    {
+      return array(
+          "page" => $page_id,
+          "width" => 100,	
+          "height" => 100, 
+          "src" => "resources/images/no_image_available.jpg",
+          "error" => "INVALID_ARCHIVE",
+          "message" => $filelist
+          );
+    }
     
     $path_parts = pathinfo($comic["filename"]);
     $ext = strtolower($path_parts["extension"]);
@@ -1144,21 +1212,52 @@ class Comics
       $realfilename = $this->GetComicsFolder() . DIRECTORY_SEPARATOR . $comic["filename"];
       if (Comics::IsRarFile($realfilename))
       {
-        $rar_file = rar_open($realfilename);
-        $entry = rar_entry_get($rar_file, $page_filename);
-        if (!$entry->isDirectory())
-          $entry->extract(false, $cachepathname);
-          
-        rar_close($rar_file);
+        try
+        {
+          $rar_file = rar_open($realfilename);
+          $entry = rar_entry_get($rar_file, $page_filename);
+          if (!$entry->isDirectory())
+            $entry->extract(false, $cachepathname);
+            
+          rar_close($rar_file);
+        }
+        catch(Exception $e)
+        {
+          trigger_error($e.getMessage(), E_USER_NOTICE);
+        }
       }
       elseif (Comics::IsZipFile($realfilename))
       {
         $zip = new ZipArchive();
         if ($zip->open($realfilename) === TRUE) 
         {
-          file_put_contents($cachepathname,$zip->getFromName($page_filename));
+          try
+          {
+            $contents = $zip->getFromName($page_filename);
+            if ($contents == false)
+            {
+              trigger_error("Unable to extract page $page_filename from file $realfilename", E_USER_NOTICE);
+            }
+            else
+            {
+              $success = file_put_contents($cachepathname, $contents);
+              if ($success === false)
+              {
+                trigger_error("Error while extracting page $page_filename from file $realfilename", E_USER_NOTICE);
+              }
+            }
+          }
+          catch(Exception $e)
+          {
+            trigger_error($e.getMessage(), E_USER_NOTICE);
+          }
+          
           $zip->close();
-        } 
+        }
+        else
+        {
+          $this->Log(SL_ERROR, "InternalGetPage", "Unable to open the file $realfilename");
+        }
       }
       else
       {
@@ -1166,7 +1265,7 @@ class Comics
           "page" => $page_id,
           "width" => 100,	
           "height" => 100, 
-          "src" => "img/invalid_page.png",
+          "src" => "resources/images/no_image_available.jpg",
           "error" => "INVALID_FILE_FORMAT"
           );
       }
@@ -1176,6 +1275,17 @@ class Comics
     else
     {
       $size = getimagesize($cachepathname);
+      if ($size === false)
+      {
+        $this->Log(SL_ERROR, "InternalGetPage", "Unable to get image size of '$cachepathname'");
+        return array(
+            "page" => $page_id,
+            "width" => 100,	
+            "height" => 100, 
+            "src" => "resources/images/no_image_available.jpg",
+            "error" => "INVALID_FILE_FORMAT"
+            );
+      }
     }
     
     return array(
@@ -1255,98 +1365,111 @@ class Comics
   */
   public function ListFolder(stdClass $params /*$folder, $filter = null*/)
   {
-    if (isset($params->id) && $params->id != "root" && $params->id != "FileSystem-")
-      $folder = $params->id;
-    else
-      $folder = ""; // get root folder
-      
-    if (isset($params->filter))
-      $filter = $params->filter;
-    else
-      $filter = array();
-      
-    $default_filter = array("files"=>true, "folders"=>true, "count"=>true, "sort"=>true, "comics"=>true);
-    $filter = is_object($filter) ? get_object_vars($filter) : (is_array($filter) ? $filter : array());
-    $filter = array_merge($default_filter, $filter);
-    
-    // convert to Windows Unicode
-    $folder = utf8_decode($folder);
-    
-    $real_folder = $this->GetComicsFolder() . DIRECTORY_SEPARATOR . $folder;
-    $real_folder = rtrim($real_folder,"/\\");
-
-    $root = scandir($real_folder);
-    $items = array();
-    foreach($root as $value)
+    try 
     {
-      if ($value === "." || $value === ".." || $value === ".svn") {continue;}
-      
-      $item = array();
-      
-      // Convert from Windows Unicode to utf8.
-      // This way json_encode will work with it. 
-      if ($folder == "")
-        $item["id"] =  utf8_encode($value);
+      if (isset($params->id) && $params->id != "root" && $params->id != "FileSystem-")
+        $folder = $params->id;
       else
-        $item["id"] =  utf8_encode($folder . DIRECTORY_SEPARATOR . $value);
+        $folder = ""; // get root folder
         
-      $item["name"] =  utf8_encode($value);
+      if (isset($params->filter))
+        $filter = $params->filter;
+      else
+        $filter = array();
+        
+      $default_filter = array("files"=>true, "folders"=>true, "count"=>true, "sort"=>true, "comics"=>true);
+      $filter = is_object($filter) ? get_object_vars($filter) : (is_array($filter) ? $filter : array());
+      $filter = array_merge($default_filter, $filter);
       
-      if (($filter["files"] == true) && (is_file($real_folder . DIRECTORY_SEPARATOR . $value))) 
+      // convert to Windows Unicode
+      $folder = utf8_decode($folder);
+      
+      $real_folder = $this->GetComicsFolder() . DIRECTORY_SEPARATOR . $folder;
+      $real_folder = rtrim($real_folder,"/\\");
+
+      $root = scandir($real_folder);
+      if ($root === false)
       {
-        if ($filter["comics"])
+        trigger_error("Unable to scan folder $real_folder", E_USER_NOTICE);
+        return array("items"=> array(), "success"=>false);
+      }
+      
+      $items = array();
+      foreach($root as $value)
+      {
+        if ($value === "." || $value === ".." || $value === ".svn") {continue;}
+        
+        $item = array();
+        
+        // Convert from Windows Unicode to utf8.
+        // This way json_encode will work with it. 
+        if ($folder == "")
+          $item["id"] =  utf8_encode($value);
+        else
+          $item["id"] =  utf8_encode($folder . DIRECTORY_SEPARATOR . $value);
+          
+        $item["name"] =  utf8_encode($value);
+        
+        if (($filter["files"] == true) && (is_file($real_folder . DIRECTORY_SEPARATOR . $value))) 
         {
-          $comic = $this->GetComicFromFilename(($folder != "" ? $folder . DIRECTORY_SEPARATOR : "") . $value);
-          if ($comic)
+          if ($filter["comics"])
+          {
+            $comic = $this->GetComicFromFilename(($folder != "" ? $folder . DIRECTORY_SEPARATOR : "") . $value);
+            if ($comic)
+            {
+              $item["leaf"] = true;
+              $item["comic"] = $comic;
+              /*
+              $item["comic_id"] = $comic["id"];
+              $item["comic_name"] = $comic["name"];
+              $item["comic_number_of_pages"] = $comic["number_of_pages"];
+              $item["comic_date_last_read"] = $comic["date_last_read"];
+              $item["comic_last_page_read"] = $comic["last_page_read"];
+              */
+              
+              $items[] = $item;        
+            }
+          }
+          else
           {
             $item["leaf"] = true;
-            $item["comic"] = $comic;
-            /*
-            $item["comic_id"] = $comic["id"];
-            $item["comic_name"] = $comic["name"];
-            $item["comic_number_of_pages"] = $comic["number_of_pages"];
-            $item["comic_date_last_read"] = $comic["date_last_read"];
-            $item["comic_last_page_read"] = $comic["last_page_read"];
-            */
-            
-            $items[] = $item;        
+            $item["comic_id"] = -1;
+            $items[] = $item;
           }
         }
-        else
+        elseif ($filter["folders"] == true)
         {
-          $item["leaf"] = true;
-          $item["comic_id"] = -1;
+          $item["leaf"] = false;
+                  
+          if ($filter["count"] == true)
+          {
+            $count = $this->FS_GetContentCount($folder . DIRECTORY_SEPARATOR . $value);
+            $item = array_merge($item, $count);
+          }
+          
           $items[] = $item;
         }
       }
-      elseif ($filter["folders"] == true)
+      
+      if (isset($filter["sort"]))
       {
-        $item["leaf"] = false;
-                
-        if ($filter["count"] == true)
+        $args = $filter["sort"];
+        usort($items, function ($item1, $item2) use($args)
         {
-          $count = $this->FS_GetContentCount($folder . DIRECTORY_SEPARATOR . $value);
-          $item = array_merge($item, $count);
-        }
-        
-        $items[] = $item;
+          // folders before items
+          if ($item1["leaf"] && !$item2["leaf"]) return 1;
+          if (!$item1["leaf"] && $item2["leaf"]) return -1;
+          
+          return strnatcasecmp($item1["name"], $item2["name"]);
+        });
       }
+      
+      return array("items"=> $items, "success"=>true);
     }
-    
-    if (isset($filter["sort"]))
+    catch(Exception $e)
     {
-      $args = $filter["sort"];
-      usort($items, function ($item1, $item2) use($args)
-      {
-        // folders before items
-        if ($item1["leaf"] && !$item2["leaf"]) return 1;
-        if (!$item1["leaf"] && $item2["leaf"]) return -1;
-        
-        return strnatcasecmp($item1["name"], $item2["name"]);
-      });
+      trigger_error("ListFolder failed" . $e.getMessage(), E_USER_ERROR);
     }
-    
-    return array("items"=> $items, "success"=>true);
   }
   
   public function GetRecent(stdClass $params)

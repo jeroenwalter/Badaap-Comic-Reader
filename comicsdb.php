@@ -25,16 +25,43 @@
 require_once(dirname(__FILE__)."/config.php");
 require_once(dirname(__FILE__)."/users.php");
 
+define("APP_VERSION", "0.3"); // numbering will be MAJOR.MINOR
+define("COMIC_DB_VERSION", 3);
 
-define("APP_VERSION", "0.2"); // numbering will be MAJOR.MINOR
 
-define("COMIC_DB_VERSION", 2);
+//////////////////////////////////////////////////////////////////////////////
+// Setup logging
 
 // Log levels
 define("SL_DEBUG", 0);
 define("SL_INFO", 1);
 define("SL_WARNING", 2);
 define("SL_ERROR", 3);
+
+// Should log to the same directory as this file
+require dirname(__FILE__) . '/KLogger.php';
+
+$log = KLogger::instance(dirname(__FILE__), KLogger::DEBUG);
+
+function DoLog($severity, $source, $message)
+{
+  global $log;
+  
+  if ($severity == SL_DEBUG)
+    $log->logDebug('['.$source . '] '.$message);
+  else 
+  if ($severity == SL_INFO)
+    $log->logInfo('['.$source . '] '.$message);
+  else
+  if ($severity == SL_WARNING)
+    $log->logWarn('['.$source . '] '.$message);
+  else
+  if ($severity == SL_ERROR)
+    $log->logError('['.$source . '] '.$message);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
 
 // enum for the Type field of the ComicPageInfo record.
 //$ComicPageType = [ 0=>"FrontCover", 1=>"InnerCover", 2=>"Roundup", 3=>"Story", 4=>"Advertisment", 5=>"Editorial", 6=>"Letters", 7=>"Preview", 8=>"BackCover", 9=>"Other", 10=>"Deleted"];
@@ -142,16 +169,6 @@ class ComicsDB
           );");
       
       // TODO: add type field to settings + min/max or other validators
-      
-      
-      $this->db->exec("CREATE TABLE log(
-          id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
-          severity INTEGER NOT NULL, 
-          source TEXT NOT NULL, 
-          message TEXT NOT NULL, 
-          date INTEGER NOT NULL DEFAULT (CURRENT_TIMESTAMP)
-          );");
-      
       
      
       //$this->db->exec("INSERT INTO settings (key,value) VALUES ('lazyload_covers','0');"); // if enabled, covers are only loaded when they scroll into view.
@@ -304,40 +321,30 @@ class ComicsDB
       
       $this->db->exec("COMMIT TRANSACTION;");
       
-      $this->Log(SL_INFO, "UpdateDatabase", "Database created");
-      
-      
+      DoLog(SL_INFO, "UpdateDatabase", "Database created");
     }
-
    
-    $this->Log(SL_INFO, "UpdateDatabase", "Database version ". $version);
-    
     if ($version < 2)
     {
       // $options["comicsfolder"] is no longer stored in the database.
       $this->db->exec("DELETE FROM settings WHERE key = 'comics_folder';");
     }
     
+    if ($version < 3)
+    {
+      // $options["comicsfolder"] is no longer stored in the database.
+      $this->db->exec("DROP TABLE log;");
+      $this->db->exec("VACUUM;");
+      
+    }
+    
     if ($version < COMIC_DB_VERSION)
     {
       $this->db->exec("UPDATE settings SET value='".COMIC_DB_VERSION."' WHERE key='version';");
       
-      $this->Log(SL_INFO, "UpdateDatabase", "Database updated to version ". COMIC_DB_VERSION);
+      DoLog(SL_INFO, "UpdateDatabase", "Database updated to version ". COMIC_DB_VERSION);
     }
     
-  }
-  
-  //////////////////////////////////////////////////////////////////////////////
-  public function Log($severity, $source, $message)
-  {
-    $this->db->exec("INSERT INTO log (severity, source, message) VALUES (".(int)$severity.",'".SQLite3::escapeString($source)."','".SQLite3::escapeString($message)."');");
-  }
-  
-  //////////////////////////////////////////////////////////////////////////////
-  public function ClearLog()
-  {
-    $this->db->exec("DELETE FROM log;");
-    $this->db->exec("VACUUM;");
   }
   
   //////////////////////////////////////////////////////////////////////////////

@@ -149,7 +149,7 @@ Ext.define('Comic.controller.Comic', {
       var me = this;
       var imageviewer = me.getImageviewer();
       imageviewer.setResizeOnLoad(true);
-      imageviewer.setErrorImage('resources/no_image_available.jpg');
+      imageviewer.setErrorImage('resources/images/no_image_available.jpg');
       
       // 1: Fit width, 2: Full page
       if (Comic.userinfo.page_fit_mode == 2)
@@ -222,7 +222,7 @@ Ext.define('Comic.controller.Comic', {
         titlebar.setTitle('No comic selected');
         
         var imageviewer = me.getImageviewer();
-        imageviewer.loadImage('resources/no_image_available.jpg');
+        imageviewer.loadImage('resources/images/no_image_available.jpg');
       }
       else
       {
@@ -518,6 +518,13 @@ Ext.define('Comic.controller.Comic', {
       console.log("GetPage " + pagenr);
       Ext.app.Comics.GetPage(Comic.userinfo.current_comic_id, pagenr, 10000, function(provider, response) 
         {
+          if (response.getResult().error)
+          {
+            console.log(response.getResult().error);
+            if (response.getResult().message)
+              console.log(response.getResult().message);
+          }
+            
           me.cache[response.getResult().page] = response.getResult();
           me.PreloadImage(response.getResult().page);
         });

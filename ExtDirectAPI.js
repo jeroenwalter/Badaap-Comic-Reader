@@ -30,6 +30,7 @@ Ext.define('ExtDirectAPI', {
       'Ext.direct.Manager',
       'Ext.direct.RemotingProvider',
       'Ext.Ajax',
+      'Ext.direct.RemotingEvent'
      ],
 
   },
@@ -44,10 +45,20 @@ Ext.define('ExtDirectAPI', {
     url: 'ExtDirectAPI.php?json',
     method: 'GET',
     
-    success: function(response){
-                eval("Ext.app.REMOTING_API = " + response.responseText);
-                Ext.Direct.addProvider( Ext.app.REMOTING_API );
-              }
+    success: function(response)
+      {
+        eval("Ext.app.REMOTING_API = " + response.responseText);
+        
+        // Disable batch requests, makes debugging easier.
+        Ext.app.REMOTING_API.enableBuffer = false;
+        
+        /* doesn't work ?
+        Ext.app.REMOTING_API.listeners = {
+          exception: function(e) { alert(e); }
+        };
+        */
+        Ext.Direct.addProvider( Ext.app.REMOTING_API );
+      }
     });
   }
 );

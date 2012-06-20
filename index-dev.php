@@ -62,6 +62,14 @@ require_once("comics.php");
     <meta http-equiv="expires" content="-1">    
     -->
     
+<script type="text/javascript">
+  // Create global variable
+  // If set to true, a call to the global function ShowError(message) will show the message in a separate
+  // screen and stop all javascript processing.
+  // This is mainly meant to debug the Ext.Direct communication between the browser and the webserver.
+  DebugActive = true;
+</script>
+
     <!-- The line below must be kept intact for Sencha Command to build your application -->
     <script id="microloader" type="text/javascript" src="sdk/microloader/development.js"></script>        
 

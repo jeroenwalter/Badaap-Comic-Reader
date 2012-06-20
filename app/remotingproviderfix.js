@@ -20,6 +20,19 @@
   Fix that adds the following:
   - call the callbacks if the JSON parsing fails.
 */
+
+
+/*
+Ext.define('Fix.Ext.data.proxy.Direct', {
+  override: 'Ext.data.proxy.Direct',
+  setException: function(operation, response) {
+        console.log("Exception in DirectProxy");
+        console.log(response);
+        operation.setException(response);
+    },
+});
+*/
+  
 Ext.define('Comic.Remotingproviderfix', {
     override: 'Ext.direct.RemotingProvider',
     /**
@@ -41,23 +54,53 @@ Ext.define('Comic.Remotingproviderfix', {
                 
                 if (event.getCode() == Ext.direct.Manager.exceptions.PARSE)
                 {
-                  // If JSON parsing fails, the events array will only have 1 entry.
-                  // Now callback all transactions.
-                  transactions = [].concat(options.transaction);
-                  for (ln = transactions.length; i < ln; ++i) {
+                  console.log("Error while parsing the response for one or more ExtDirect methods:");
+                  if (event.getData())
+                    console.log(event.getData().message);
+                  
+                  if (Ext.isFunction(ShowError))
+                  {
+                    var msg = "<br/><br/>Outstanding Ext.Direct transactions:<br/>";
+                    transactions = [].concat(options.transaction);
+                    for (ln = transactions.length; i < ln; ++i) 
+                    {
                       transaction = me.getTransaction(transactions[i]);
-                      if (transaction && transaction.getRetryCount() < me.getMaxRetries()) {
-                          transaction.retry();
-                      } else {
-                          var newevent = Ext.clone(event);
-                          newevent.transaction = transaction;
-                                                        
-                          me.fireEvent('data', me, newevent);
-                          if (transaction) {
-                              me.runCallback(transaction, newevent, false);
-                              Ext.direct.Manager.removeTransaction(transaction);
-                          }
+                      msg += transaction.getAction() + "." + transaction.getMethod() + "<br/>";
+                    }
+                    
+                    ShowError("<h2>Error while parsing the response for one or more ExtDirect methods:</h2><hr>" + event.getData().message + msg);
+                  }
+                  
+                  // If JSON parsing fails, the events array will only have 1 entry.
+                  // Now callback all transactions with an exception per transaction.
+                  transactions = [].concat(options.transaction);
+                  for (ln = transactions.length; i < ln; ++i) 
+                  {
+                    transaction = me.getTransaction(transactions[i]);
+                    
+                    //Ext.Msg.alert("Error while parsing the response for the remote method:" + transaction.getAction() + "." + transaction.getMethod());
+                    
+                    if (transaction && transaction.getRetryCount() < me.getMaxRetries()) 
+                    {
+                      transaction.retry();
+                    } 
+                    else 
+                    {
+                      //var newevent = Ext.clone(event);
+                      
+                      var errorresponse = { type : 'rpc', result: { code: 'PARSE_ERROR', message: "" + event.getData().message }, tid: transaction.getTid(), action: transaction.getAction(), method : transaction.getMethod() };
+                      
+                      var newevent = Ext.create('direct.rpc', errorresponse);
+                      newevent.transaction = transaction;
+                      newevent.setStatus(false);
+                                            
+                      me.fireEvent('data', me, newevent);
+                      if (transaction) 
+                      {
+                          me.runCallback(transaction, newevent, false);
+                          Ext.direct.Manager.removeTransaction(transaction);
                       }
+                    }
                   }
                 }
                 else

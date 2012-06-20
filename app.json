@@ -164,6 +164,7 @@
         "logout.php",
         "users.php",
         "index.php",
+        "KLogger.php",
         "cache/placeholder.txt",
         "covers/placeholder.txt",
         "admin",

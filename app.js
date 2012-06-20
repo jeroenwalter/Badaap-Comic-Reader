@@ -83,6 +83,7 @@ Ext.application({
       'Ext.ux.IOS5Toggle',
       'Ext.ux.IconSpinner',
       'Ext.MessageBox',
+      'Comic.view.Error',
     ],
 
     //profiles: ['Phone', 'Tablet'],

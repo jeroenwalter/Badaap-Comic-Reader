@@ -25,6 +25,7 @@ Ext.define('Comic.controller.Main', {
           maintabpanel: 'mainview tabpanel',
           filesystemview: 'filesystemview',
           comicview: { selector: 'comicview', xtype: 'comicview', autoCreate: true },
+          errorview: { selector: 'errorview', xtype: 'errorview', autoCreate: true },
         },
         
         control: {
@@ -43,6 +44,21 @@ Ext.define('Comic.controller.Main', {
     init: function()
     {
       var me = this;
+      Main = this;
+      
+      // For debugging purposes:
+      // Create the global function ShowError
+      ShowError = function(html) 
+        { 
+          if (typeof(DebugActive) == 'undefined' || !DebugActive)
+          {
+            console.log(html);
+          }
+          else
+          {
+            me.showError(html); 
+          }
+        };
       
       Comic.settings = {};
       Comic.userinfo = {};
@@ -99,5 +115,12 @@ Ext.define('Comic.controller.Main', {
       Comic.new_comic_id = id;
       this.getMainview().push(this.getComicview());
     },
-    
+   
+    showError: function(html)
+    {
+      var errorview = this.getErrorview();
+      errorview.setHtml(html + "<hr>Stopped execution because there is a serious error.");
+      this.getMainview().push(errorview);
+      throw "Stopped execution because there is a serious error.";
+    },
 });

@@ -1,5 +1,18 @@
 <?php
 
+  /*
+set_exception_handler('my_exception_handler');
+
+function my_exception_handler($e) {
+    exit('Huston! We have a problem: '.$e);
+}
+*/
+
+function my_error_handler($no,$str,$file,$line) 
+{
+    $e = new ErrorException($str,$no,0,$file,$line);
+    throw($e);
+}
 /**
  * Configurations for ExtDirect integration
  * Default values for all boolean configurations is "false" (this is easy to remember)
@@ -375,11 +388,14 @@ class ExtDirectAction
 			$this->parameters = array();
 	}
 	
+
 	/**
 	 * @return array   Result of the action execution
 	 */
 	public function run()
 	{
+    
+    
 		$response = array(
 			'type'    => 'rpc',
 			'tid'     => $this->transaction_id,
@@ -389,19 +405,30 @@ class ExtDirectAction
 		
 		try
 		{
+      //set_error_handler('my_error_handler');
 			$result = $this->call_action();
+      //restore_error_handler();
 			$response['result'] = $result;
 		}
 		
 		catch ( Exception $e )
 		{
-			$response['result'] = 'Exception';
+			$response['result'] = "Exception";//"Exception\nMessage: " . $e->getMessage() . "\nWhere: ".$e->getTraceAsString();
+      /*
+      $response['result'] = array(
+					'error'    => 'exception',
+					'message' => $e->getMessage(),
+					'where'   => $e->getTraceAsString(),
+          'action'  => $this->action,
+          'method'  => $this->method
+				);
+      */
 			if ( ExtDirect::$debug )
 				$response = array(
 					'type'    => 'exception',
 					'tid'     => $this->transaction_id,
 					'message' => $e->getMessage(),
-					'where'   => $e->getTraceAsString()
+					'where'   => $e->getTraceAsString(),
 				);
 			$this->exception = $e;
 		}
