@@ -13,6 +13,11 @@ Badaap Comic Reader changelog.
 - path to comics folder no longer stored in the database, BCR now always uses $options["comicsfolder"]
 - fixed error while loading the Comic Info page
 
+--- 0.3 [2012/06/19]
+- added php logging
+- added client-side error page
+
+
 
 --- Planned features:
 - Create custom (smart)lists.

@@ -23,7 +23,7 @@ In some cases the code is modified to fit the application requirements.
 --------------------------------------------------
 Source code 
 
-Sencha Touch 2.0.1 GPL version
+Sencha Touch 2.0.1.1 GPL version
 
 
 User management functions by Dan Storm (modified for SQLite):
@@ -57,6 +57,8 @@ http://davehiren.blogspot.nl/2012/04/sencha-touch-spinner-field-change.html
 Add to home screen script by Matteo Spinelli:
 http://cubiq.org/add-to-home-screen
 
+PHP File logger:
+https://github.com/katzgrau/KLogger
 
 ---------------------------------------------------
 
