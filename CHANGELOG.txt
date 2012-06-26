@@ -1,6 +1,23 @@
 Badaap Comic Reader changelog.
 
 
+--- 0.4
+- added support for multiple comic folders
+  * use the $options["folders"] array to specify watched folders
+  * comic filenames are now stored with their absolute path in the database
+  * $options["comicfolder"] is deprecated. In order to upgrade the database, make sure to put the folder from $options["folder"] as the first folder in $options["folders"]
+  * added some missing tables and fields that are in the ComicDB.xml database. They're not used yet.
+  
+--- 0.3 [2012/06/19]
+- added php logging
+- added client-side error page
+
+
+--- 0.2 [2012/06/15]
+- path to comics folder no longer stored in the database, BCR now always uses $options["comicsfolder"]
+- fixed error while loading the Comic Info page
+
+
 --- 0.1 - first public release:
 - Add user management pages.
 - Add comic book detail page, showing the ComicRack metadata from ComicInfo.xml
@@ -9,13 +26,6 @@ Badaap Comic Reader changelog.
 - Create temporary application icons.
 - Implement the view to modify the user settings.
 
---- 0.2 [2012/06/15]
-- path to comics folder no longer stored in the database, BCR now always uses $options["comicsfolder"]
-- fixed error while loading the Comic Info page
-
---- 0.3 [2012/06/19]
-- added php logging
-- added client-side error page
 
 
 
