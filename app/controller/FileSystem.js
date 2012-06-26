@@ -90,7 +90,11 @@ Ext.define('Comic.controller.FileSystem', {
       },
     onShow: function()
       {
-        //alert('bla');
+        Ext.app.Comics.GetRecent({}, function(result)
+        {
+          console.log(result);
+        });
+        
       },
     doTapItem: function(nestedList, list, index, target, record)
       {

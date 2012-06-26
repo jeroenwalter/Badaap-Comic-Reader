@@ -119,7 +119,7 @@ Ext.define('Comic.view.FileSystem', {
     //onItemDisclosure: function() { alert('onItemDisclosure'); },
     
     getTitleTextTpl: function() {
-      return '{' + this.getDisplayField() + '}<tpl if="leaf !== true">/</tpl>';
+      return '{' + this.getDisplayField() + '}';
     },
     /*
     onSwipe: function() {

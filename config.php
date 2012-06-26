@@ -64,7 +64,14 @@ else
 
 
 // Location of the comic files. This must be an absolute path.
-$options["comicsfolder"]= "J:\\comics";
+//$options["comicsfolder"] = "J:\\comics";
+
+// Array of folders with your comic files. These must be absolute paths.
+// These folders are added to the list of watched folders found in the ComicRack database.
+$options["folders"] = array("J:\\comics_org", "J:\\comics");
+
+$options["ComicRackDatabase"] = "C:\\Users\\jeroen\\AppData\\Roaming\\cYo\\ComicRack\\ComicDb.xml";
+$options["ComicRackFolder"] = "C:\\Program Files\\ComicRack";
 
 
 ?>

@@ -26,7 +26,6 @@ Ext.Loader.setConfig({
   } 
 });
 
-//Ext.syncRequire( 'ExtDirectAPI' );
 
 /*
   This creates the application.

@@ -263,7 +263,7 @@ Ext.define('Comic.controller.Database', {
               Comic.scan.num_folders += result.nr_folders;
               Ext.Object.each(result.folders, function(key, val) 
               {
-                me.add(folder + "/" + val);
+                me.add(val);
               });
               
               Comic.scan.nr_updated += result.nr_updated;
@@ -277,12 +277,12 @@ Ext.define('Comic.controller.Database', {
               
               Ext.Object.each(result.newfiles, function(key, val) 
               {
-                Comic.scan.file_queue.add(folder + "/" + val);
+                Comic.scan.file_queue.add(val);
               });
               
               Ext.Object.each(result.updated, function(key, val) 
               {
-                Comic.scan.file_queue.add(folder + "/" + val);
+                Comic.scan.file_queue.add(val);
               });
               
               nrFoldersField.setValue("Folders: " + Comic.scan.num_folders + " Files: " + (Comic.scan.nr_updated + Comic.scan.nr_new));
@@ -367,7 +367,7 @@ Ext.define('Comic.controller.Database', {
               // Add the root folder, this will start the update process.
               Comic.scan.state = 1; 
               statusField.setValue('Getting a list of all files...');
-              Comic.scan.folder_queue.add( "" );      
+              Comic.scan.folder_queue.add( "" );
               Comic.scan.folder_queue.start();
             }
           });

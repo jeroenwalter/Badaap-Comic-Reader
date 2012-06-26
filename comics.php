@@ -95,8 +95,8 @@ class Comics
   public $userid;
   public $cbr_supported;
   protected $abs_cache_folder;  // This is the folder in which the comic pages are extracted to
-  protected $abs_comics_folder; // This is the absolute path to the folder containing the comic files.
   protected $abs_covers_folder; // This is the absolute path to the folder containing the covers for the comics, folder and the series.
+  public $folders;
   
   public function __construct()
   {
@@ -113,18 +113,23 @@ class Comics
     $this->cbr_supported = extension_loaded("rar");
 
     // This is the folder in which the comic pages are extracted to
-    //$this->abs_cache_folder =  pathinfo(realpath("comics.php"),PATHINFO_DIRNAME) . "/" . $this->settings["cache_folder"];
     $this->abs_cache_folder = realpath($this->settings["cache_folder"]) . DIRECTORY_SEPARATOR;
     
     // This is the absolute path to the folder containing the comic files.
-    
-    if (realpath($options["comicsfolder"]) === false)
+    $this->folders = $options["folders"];
+    // Add watched folders from comic rack, if any
+    $result = $this->db->query('SELECT * FROM WatchFolder');
+    while ($res = $result->fetchArray(SQLITE3_ASSOC))
     {
-      echo "The comics path '" . $options["comicsfolder"] . "' does not exist."; 
-      die;
+      $folder = rtrim($res["Folder"], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+      if (!in_array($folder, $this->folders))
+      {
+        $this->folders[] = $folder;
+      }
     }
     
-    $this->abs_comics_folder = realpath($options["comicsfolder"]) . DIRECTORY_SEPARATOR;
+    $result->finalize();
+
     $this->abs_covers_folder = realpath($this->settings["covers_folder"]) . DIRECTORY_SEPARATOR;
   }
 
@@ -351,9 +356,16 @@ class Comics
   
     
   //////////////////////////////////////////////////////////////////////////////
+  public function GetComicsFolders()
+  {
+    global $options;
+    return $options["folders"];
+  }
+
   public function GetComicsFolder()
   {
-    return $this->abs_comics_folder;
+    global $options;
+    return $options["folders"][0];
   }
 
   public function GetCoversFolder()
@@ -633,7 +645,7 @@ class Comics
   
   public function GetComicFromFilename($filename, $add_excerpt = true)
   {
-    $query = "SELECT * FROM comic WHERE filename = '" . SQLite3::escapeString($filename) ."';";
+    $query = "SELECT * FROM comic WHERE filename LIKE '" . SQLite3::escapeString($filename) ."';";
     $result = $this->db->querySingle($query, true);
     if ($add_excerpt)
       return $this->GetComicExcerpt($result);
@@ -643,7 +655,7 @@ class Comics
   
   public function GetComicIdFromFilename($filename)
   {
-    $query = "SELECT id FROM comic WHERE filename = '" . SQLite3::escapeString($filename) ."';";
+    $query = "SELECT id FROM comic WHERE filename LIKE '" . SQLite3::escapeString($filename) ."';";
     $result = $this->db->querySingle($query, false);
     return $result;
   }
@@ -680,9 +692,8 @@ class Comics
       exit("Comic id " . $comic_id . " not found!");
       return;
     }
-      
-    $abs_filename = realpath($this->GetComicsFolder() . DIRECTORY_SEPARATOR . $comic["filename"]);
-    list($filelist, $comicinfo) = $this->ParseComicArchive($abs_filename);
+
+    list($filelist, $comicinfo) = $this->ParseComicArchive($comic["filename"]);
     
     if (!$comicinfo)
     {
@@ -759,22 +770,17 @@ class Comics
   // NB: comic_name must be utf8 encoded.
   public function AddComic($filename)
   {
+    $filename = realpath(utf8_decode($filename));
     $comic_name = utf8_encode(pathinfo($filename, PATHINFO_FILENAME));
     // convert to Windows Unicode
-    $filename = utf8_decode($filename);
-  
-    $abs_filename = realpath($this->GetComicsFolder() . DIRECTORY_SEPARATOR . $filename);
-  
-    if (!is_file($abs_filename))
+    
+    if (!is_file($filename))
     {
       $this->Log(SL_ERROR, "AddComic", "File not found: " . $filename);
       return array("id" => -1, "status" => "FILE_NOT_FOUND");
     }
-    
-    // fix the dir separators:
-    $filename = substr($abs_filename, strlen($this->GetComicsFolder() . DIRECTORY_SEPARATOR)-1);
   
-    if (!$this->IsSupportedFormat($abs_filename))
+    if (!$this->IsSupportedFormat($filename))
     {
       $this->Log(SL_ERROR, "AddComic", "Unsupported format for file: " . $filename);
       return array("id" => -1, "status" => "UNSUPPORTED_FORMAT");
@@ -782,8 +788,8 @@ class Comics
   
     $path_parts = pathinfo($filename);
     $ext = strtolower($path_parts["extension"]);
-    if ((($ext == "cbr" || $ext == "rar") && !Comics::IsRarFile($abs_filename)) || 
-       (($ext == "cbz" || $ext == "zip") && !Comics::IsZipFile($abs_filename)))
+    if ((($ext == "cbr" || $ext == "rar") && !Comics::IsRarFile($filename)) || 
+       (($ext == "cbz" || $ext == "zip") && !Comics::IsZipFile($filename)))
     {
       $this->Log(SL_WARNING, "AddComic", "Incorrect extension '$ext' for file: $filename");
       return array("id" => -1, "status" => "INCORRECT_FORMAT");
@@ -792,7 +798,7 @@ class Comics
     $comic = $this->GetComicFromFilename($filename, false);
     if ($comic)
     {
-      if (filemtime($abs_filename) != $comic["file_last_modified_time"])
+      if (filemtime($filename) != $comic["file_last_modified_time"])
       {
         // update comic info
         $this->UpdateComicInfo($comic["id"], $comic);
@@ -807,20 +813,20 @@ class Comics
       
     }
       
-    list($filelist, $comicinfo) = $this->ParseComicArchive($abs_filename);
+    list($filelist, $comicinfo) = $this->ParseComicArchive($filename);
     if (gettype($filelist) == 'string')
     {
-      $this->Log(SL_ERROR, "AddComic", "File: '$abs_filename' Error: $filelist");
+      $this->Log(SL_ERROR, "AddComic", "File: '$filename' Error: $filelist");
       return array("id" => -1, "status" => "INVALID_ARCHIVE");
     }
     
     if (count($filelist) == 0)
     {
-      $this->Log(SL_ERROR, "AddComic", "Comic has no pages: " . $abs_filename);
+      $this->Log(SL_ERROR, "AddComic", "Comic has no pages: " . $filename);
       return array("id" => -1, "status" => "EMPTY_COMIC_FILE");
     }
     
-    $query = "INSERT INTO comic (name, filename, file_last_modified_time, number_of_pages) VALUES ('".SQLite3::escapeString($comic_name)."', '".SQLite3::escapeString($filename)."', ".filemtime($abs_filename).", ". count($filelist). ");";
+    $query = "INSERT INTO comic (name, filename, file_last_modified_time, number_of_pages) VALUES ('".SQLite3::escapeString($comic_name)."', '".SQLite3::escapeString($filename)."', ".filemtime($filename).", ". count($filelist). ");";
     $success = $this->db->exec($query);
     
     if ($success)
@@ -1051,13 +1057,11 @@ class Comics
   
   public function GetComicInfoXml($filename, $comicinfo)
   {
-    $realfilename = $this->GetComicsFolder() . DIRECTORY_SEPARATOR . $filename;
-    
     if (true || !file_exists($cachepathname))
     {
-      if (Comics::IsRarFile($realfilename))
+      if (Comics::IsRarFile($filename))
       {
-        $rar_file = rar_open($realfilename);
+        $rar_file = rar_open($filename);
         $entry = rar_entry_get($rar_file, $comicinfo);
         $stream = $entry->getStream();
         $xml = fread($stream, $entry->getUnpackedSize());
@@ -1065,10 +1069,10 @@ class Comics
         rar_close($rar_file);
         return $xml;
       }
-      elseif (Comics::IsZipFile($realfilename))
+      elseif (Comics::IsZipFile($filename))
       {
         $zip = new ZipArchive();
-        if ($zip->open($realfilename) === TRUE) 
+        if ($zip->open($filename) === TRUE) 
         {
           $xml = $zip->getFromName($comicinfo);
           $zip->close();
@@ -1084,23 +1088,21 @@ class Comics
   {
     $cachepathname = $this->abs_covers_folder . "/" . $comic_id . "_cover.jpg";
     
-    $realfilename = $this->GetComicsFolder() . DIRECTORY_SEPARATOR . $comic_filename;
-    
     if (true || !file_exists($cachepathname))
     {
-      if (Comics::IsRarFile($realfilename))
+      if (Comics::IsRarFile($comic_filename))
       {
-        $rar_file = rar_open($realfilename);
+        $rar_file = rar_open($comic_filename);
         $entry = rar_entry_get($rar_file, $filename);
         if (!$entry->isDirectory())
           $entry->extract(false, $cachepathname);
           
         rar_close($rar_file);
       }
-      elseif (Comics::IsZipFile($realfilename))
+      elseif (Comics::IsZipFile($comic_filename))
       {
         $zip = new ZipArchive();
-        if ($zip->open($realfilename) === TRUE) 
+        if ($zip->open($comic_filename) === TRUE) 
         {
           file_put_contents($cachepathname,$zip->getFromName($filename));
           $zip->close();
@@ -1182,10 +1184,10 @@ class Comics
     }
     
     $max_width = $max_width ? $max_width : $this->settings["max_width"];
-    
+    $filename = $comic["filename"];
     // Extract the page from the comic archive to a temp file in the cache folder.
     if (!$filelist)
-      list($filelist, $comicinfo) = $this->ParseComicArchive($this->GetComicsFolder() . DIRECTORY_SEPARATOR . $comic["filename"]);
+      list($filelist, $comicinfo) = $this->ParseComicArchive($filename);
     
     if (gettype($filelist) == 'string')
     {
@@ -1199,7 +1201,7 @@ class Comics
           );
     }
     
-    $path_parts = pathinfo($comic["filename"]);
+    $path_parts = pathinfo($filename);
     $ext = strtolower($path_parts["extension"]);
     
     $page_filename = $filelist[$page_id];
@@ -1209,12 +1211,11 @@ class Comics
     
     if (!file_exists($cachepathname))
     {
-      $realfilename = $this->GetComicsFolder() . DIRECTORY_SEPARATOR . $comic["filename"];
-      if (Comics::IsRarFile($realfilename))
+      if (Comics::IsRarFile($filename))
       {
         try
         {
-          $rar_file = rar_open($realfilename);
+          $rar_file = rar_open($filename);
           $entry = rar_entry_get($rar_file, $page_filename);
           if (!$entry->isDirectory())
             $entry->extract(false, $cachepathname);
@@ -1226,24 +1227,24 @@ class Comics
           trigger_error($e.getMessage(), E_USER_NOTICE);
         }
       }
-      elseif (Comics::IsZipFile($realfilename))
+      elseif (Comics::IsZipFile($filename))
       {
         $zip = new ZipArchive();
-        if ($zip->open($realfilename) === TRUE) 
+        if ($zip->open($filename) === TRUE) 
         {
           try
           {
             $contents = $zip->getFromName($page_filename);
             if ($contents == false)
             {
-              trigger_error("Unable to extract page $page_filename from file $realfilename", E_USER_NOTICE);
+              trigger_error("Unable to extract page $page_filename from file $filename", E_USER_NOTICE);
             }
             else
             {
               $success = file_put_contents($cachepathname, $contents);
               if ($success === false)
               {
-                trigger_error("Error while extracting page $page_filename from file $realfilename", E_USER_NOTICE);
+                trigger_error("Error while extracting page $page_filename from file $filename", E_USER_NOTICE);
               }
             }
           }
@@ -1256,7 +1257,7 @@ class Comics
         }
         else
         {
-          $this->Log(SL_ERROR, "InternalGetPage", "Unable to open the file $realfilename");
+          $this->Log(SL_ERROR, "InternalGetPage", "Unable to open the file $filename");
         }
       }
       else
@@ -1296,42 +1297,6 @@ class Comics
     );   
   }
   
-
-  // Retrieve a list of imported comics in the filesystem folder
-  // $folder relative to comics_folder
-  public function FS_GetComics($folder)
-  {
-    // convert to Windows Unicode
-    $folder = utf8_decode($folder);
-    
-    $real_folder = $this->GetComicsFolder() . DIRECTORY_SEPARATOR . $folder;
-    $real_folder = rtrim($real_folder,"/\\");
-
-    $root = scandir($real_folder);
-    $items = array();
-    $items["files"] = array();
-    $items["folders"] = array();
-    foreach($root as $value)
-    {
-      if ($value === "." || $value === ".." || $value === ".svn") {continue;}
-      if (is_file("$real_folder".DIRECTORY_SEPARATOR."$value")) 
-      {
-        $items["files"][] = utf8_encode($value);
-      }
-      else
-      {
-        // Convert from Windows Unicode to utf8.
-        // This way json_encode will work with it. 
-        $items["folders"][] = utf8_encode($value);
-      }
-    }
-    
-    natcasesort($items["files"]);
-    natcasesort($items["folders"]);
-  
-    return $items;
-  }
-  
   
   /*
   
@@ -1367,11 +1332,6 @@ class Comics
   {
     try 
     {
-      if (isset($params->id) && $params->id != "root" && $params->id != "FileSystem-")
-        $folder = $params->id;
-      else
-        $folder = ""; // get root folder
-        
       if (isset($params->filter))
         $filter = $params->filter;
       else
@@ -1381,16 +1341,43 @@ class Comics
       $filter = is_object($filter) ? get_object_vars($filter) : (is_array($filter) ? $filter : array());
       $filter = array_merge($default_filter, $filter);
       
+      if (isset($params->id) && $params->id != "root" && $params->id != "FileSystem-")
+      {
+        $folder = $params->id;
+      }
+      else
+      {
+        // return list of watched folders
+        $items = array();
+        foreach($this->folders as $folder)
+        {
+          $item = array();
+          $item["leaf"] = false;
+          $item["id"] =  utf8_encode($folder);
+          $item["name"] =  utf8_encode($folder);
+          
+          if ($filter["count"] == true)
+          {
+            $count = $this->FS_GetContentCount($folder);
+            $item = array_merge($item, $count);
+          }
+          
+          $items[] = $item;
+        }
+
+        return array("items"=> $items, "success"=>true);
+      }
+      
       // convert to Windows Unicode
       $folder = utf8_decode($folder);
       
-      $real_folder = $this->GetComicsFolder() . DIRECTORY_SEPARATOR . $folder;
-      $real_folder = rtrim($real_folder,"/\\");
+      $folder = $folder;
+      $folder = rtrim($folder,"/\\");
 
-      $root = scandir($real_folder);
+      $root = scandir($folder);
       if ($root === false)
       {
-        trigger_error("Unable to scan folder $real_folder", E_USER_NOTICE);
+        trigger_error("Unable to scan folder $folder", E_USER_NOTICE);
         return array("items"=> array(), "success"=>false);
       }
       
@@ -1410,7 +1397,7 @@ class Comics
           
         $item["name"] =  utf8_encode($value);
         
-        if (($filter["files"] == true) && (is_file($real_folder . DIRECTORY_SEPARATOR . $value))) 
+        if (($filter["files"] == true) && (is_file($folder . DIRECTORY_SEPARATOR . $value))) 
         {
           if ($filter["comics"])
           {
@@ -1428,6 +1415,10 @@ class Comics
               */
               
               $items[] = $item;        
+            }
+            else
+            {
+              
             }
           }
           else
@@ -1495,29 +1486,20 @@ class Comics
       $item["comic"] = $row;
       $items[] = $item;
     }
-
     
     return $items;
   }
   
-  public function FS_GetRealFolder($folder)
-  {
-    $real_folder = ($folder != "") ? ($this->GetComicsFolder() . DIRECTORY_SEPARATOR . $folder) : ($this->GetComicsFolder());
-    $real_folder = rtrim($real_folder,"/\\");
-    return $real_folder;
-  }
-  
   public function FS_GetContentCount($folder)
   {
-    $real_folder = $this->FS_GetRealFolder($folder);
     $folder_count = 0;
     $file_count = 0;
-    $file = scandir($real_folder);
+    $file = scandir($folder);
     
     foreach($file as $key => $value) 
     {
       if ($value === "." || $value === ".." || $value === ".svn") {continue;}
-      if (is_file($real_folder . DIRECTORY_SEPARATOR . $value)) 
+      if (is_file($folder . DIRECTORY_SEPARATOR . $value)) 
       {
         $file_count++;
       }
@@ -1544,16 +1526,16 @@ class Comics
     $result = $this->db->query($query);
     while ($row = $result->fetchArray()) 
     {
-      $abs_filename = realpath($this->GetComicsFolder() . DIRECTORY_SEPARATOR . $row["filename"]);
-      if (!file_exists($abs_filename))
+      $filename = $row["filename"];
+      if (!file_exists($filename))
       {
         $success = $this->db->exec("UPDATE comic SET deleted = 1 WHERE id = " . $row["id"]);
         
-        $this->Log(SL_INFO, "MarkObsoleteComics", "Obsolete [" . $row["id"]. "] " . $row["filename"]);
+        $this->Log(SL_INFO, "MarkObsoleteComics", "Obsolete [" . $row["id"]. "] " . $filename);
         
         $comic = array();
         $comic["id"] = $row["id"];
-        $comic["filename"]= $row["filename"];
+        $comic["filename"]= $filename;
         $obsolete[] = $comic;
       }
     }
@@ -1565,30 +1547,57 @@ class Comics
   {
     // Delete the covers
     $result = $this->db->query("SELECT id FROM comic WHERE deleted = 1;");
+    $count = 0;
     while ($row = $result->fetchArray()) 
     {
       $cover_filename = $row["id"] . "_cover.jpg";
       $cachepathname = $this->abs_covers_folder . "/" . $cover_filename;      
       unlink($cachepathname);
+      $count++;
     }
     
     $this->db->exec("DELETE FROM comic WHERE deleted = 1;");
     $this->db->exec("VACUUM;");    
-    $this->Log(SL_INFO, "RemoveObsoleteComics", "Obsolete comics removed.");
+    $this->Log(SL_INFO, "RemoveObsoleteComics", "$count obsolete comics removed.");
   }
   
   // $folder relative to comics_folder
   public function GetComicsInFolder($folder)
   {
+    if ($folder == "")
+    {
+      // return list of watched folders
+      $items = array();
+      
+      $items["newfiles"] = array();
+      $items["updated"] = array();
+      $items["unchanged"] = array();
+      $items["folders"] = array();
+      $items["unsupported"] = array();
+      
+      $items["nr_new"] = 0;
+      $items["nr_updated"] = 0;
+      $items["nr_unchanged"] = 0;
+      $items["nr_folders"] = 0;
+      $items["nr_unsupported"] = 0;
+      
+      
+      foreach($this->folders as $folder)
+      {
+        // Convert from Windows Unicode to utf8.
+        // This way json_encode will work with it. 
+        $items["nr_folders"]++;
+        $items["folders"][] = utf8_encode($folder);
+      }
+
+      return $items;
+    }
     // convert to Windows Unicode
     $folder = utf8_decode($folder);
     
-    $real_folder = $this->GetComicsFolder() . DIRECTORY_SEPARATOR . $folder;
-    $real_folder = rtrim($real_folder,"/\\");
-
     $folder = trim($folder,"/\\") . DIRECTORY_SEPARATOR;
     
-    $root = scandir($real_folder);
+    $root = scandir($folder);
     $items = array();
     
     $items["newfiles"] = array();
@@ -1605,39 +1614,37 @@ class Comics
     foreach($root as $value)
     {
       if ($value === "." || $value === ".." || $value === ".svn") {continue;}
-      $abs_filename = realpath("$real_folder".DIRECTORY_SEPARATOR."$value");
+      $filename = realpath("$folder".DIRECTORY_SEPARATOR."$value");
       
-      if (is_file($abs_filename)) 
+      if (is_file($filename)) 
       {
         // fix the dir separators:
-        if ($this->IsSupportedFormat($abs_filename))
+        if ($this->IsSupportedFormat($filename))
         {
-          $filename = substr($abs_filename, strlen($this->GetComicsFolder() . DIRECTORY_SEPARATOR)-1);
-          
           $comic = $this->GetComicFromFilename($filename, false);
           if ($comic)
           {
-            if (filemtime($abs_filename) != $comic["file_last_modified_time"])
+            if (filemtime($filename) != $comic["file_last_modified_time"])
             {
               $items["nr_updated"]++;
-              $items["updated"][] = utf8_encode(pathinfo($abs_filename, PATHINFO_BASENAME));
+              $items["updated"][] = utf8_encode($filename);
             }
             else
             {
               $items["nr_unchanged"]++;
-              //$items["unchanged"][] = utf8_encode(pathinfo($abs_filename, PATHINFO_BASENAME));
+              //$items["unchanged"][] = utf8_encode($filename);
             }
           }
           else
           {
             $items["nr_new"]++;
-            $items["newfiles"][] = utf8_encode(pathinfo($abs_filename, PATHINFO_BASENAME));
+            $items["newfiles"][] = utf8_encode($filename);
           }
         }
         else
         {
           $items["nr_unsupported"]++;
-          $items["unsupported"][] = utf8_encode(pathinfo($abs_filename, PATHINFO_BASENAME));
+          $items["unsupported"][] = utf8_encode($filename);
         }
       }
       else
@@ -1645,14 +1652,10 @@ class Comics
         // Convert from Windows Unicode to utf8.
         // This way json_encode will work with it. 
         $items["nr_folders"]++;
-        $items["folders"][] = utf8_encode($value);
+        $items["folders"][] = utf8_encode($filename);
       }
     }
-    
-    //natcasesort($items["new"]);
-    //natcasesort($items["existing"]);
-    //natcasesort($items["folders"]);
-  
+
     return $items;
   }
   

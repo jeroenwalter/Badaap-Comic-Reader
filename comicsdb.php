@@ -25,8 +25,8 @@
 require_once(dirname(__FILE__)."/config.php");
 require_once(dirname(__FILE__)."/users.php");
 
-define("APP_VERSION", "0.3"); // numbering will be MAJOR.MINOR
-define("COMIC_DB_VERSION", 3);
+define("APP_VERSION", "0.4"); // numbering will be MAJOR.MINOR
+define("COMIC_DB_VERSION", 4);
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -85,11 +85,29 @@ class ComicsDB
       die;
     }
     
-    //$this->UpdateDatabase();
+    // Make sure the comic folders are properly ended.
+    if (isset($options["folders"]) && is_array($options["folders"]))
+    {
+      foreach ($options["folders"] as &$folder)
+      {
+        $folder = rtrim($folder, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+      }
+    }
+    else
+    {
+      DoLog(SL_ERROR, "ComicsDB", 'Configuration error: $options["folders"] is empty. Please add some folders.');
+      trigger_error('Configuration error: $options["folders"] is empty. Please add some folders.', E_USER_ERROR);
+      die;
+    }
     
-    //$this->InitUserInfo();
-    
-    //$this->ClearDatabase();
+    if (isset($options["ComicRackFolder"]))
+    {
+      $options["ComicRackFolder"] = rtrim($options["ComicRackFolder"], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+    }
+    else
+    {
+      // Not using ComicRack
+    }
   }
   
   public function get()
@@ -222,7 +240,7 @@ class ComicsDB
       /*
          ComicRack support
          
-         Filled from ComicInfo.xml if found in the comic file.
+         Filled from ComicInfo.xml if found in the comic file or from the Book element in the ComicDB.xml database.
          
          ComicInfo.xml format:
          http://comicrack.cyolito.com/downloads/comicrack/ComicRack/Support-Files/ComicInfoSchema.zip/
@@ -255,6 +273,8 @@ class ComicsDB
       // id field holds the comic id.
       $this->db->exec("CREATE TABLE ComicInfo(
           ComicId INTEGER PRIMARY KEY NOT NULL, 
+          Id TEXT NOT NULL DEFAULT '',
+          File TEXT NOT NULL DEFAULT '',
           Title TEXT NOT NULL DEFAULT '',
           Series TEXT NOT NULL DEFAULT '',
           Number TEXT NOT NULL DEFAULT '',
@@ -290,7 +310,17 @@ class ComicsDB
           SeriesGroup TEXT NOT NULL DEFAULT '',
           AgeRating TEXT NOT NULL DEFAULT '',
           Teams TEXT NOT NULL DEFAULT '',
-          ScanInformation TEXT NOT NULL DEFAULT ''
+          ScanInformation TEXT NOT NULL DEFAULT '',
+          Added TEXT NOT NULL DEFAULT '',
+          Opened TEXT NOT NULL DEFAULT '',
+          OpenCount INTEGER NOT NULL DEFAULT 0,
+          LastOpenedFromListId TEXT NOT NULL DEFAULT '',
+          FileSize INTEGER NOT NULL DEFAULT -1,
+          Missing INTEGER NOT NULL DEFAULT 0,
+          FileModifiedTime TEXT NOT NULL DEFAULT '',
+          FileCreationTime TEXT NOT NULL DEFAULT '',
+          CurrentPage INTEGER NOT NULL DEFAULT -1,
+          LastPageRead INTEGER NOT NULL DEFAULT -1
         );");
           
          
@@ -304,9 +334,19 @@ class ComicsDB
           ImageWidth INTEGER NOT NULL DEFAULT -1,
           ImageHeight INTEGER NOT NULL DEFAULT -1
         );");
+
+      $this->db->exec("CREATE TABLE WatchFolder(
+          Folder TEXT NOT NULL DEFAULT '',
+          Watch INTEGER NOT NULL DEFAULT 0
+        );");
+        
+      $this->db->exec("CREATE TABLE BlackList(
+          File TEXT NOT NULL DEFAULT ''
+        );");
+  
+  
         
       $this->db->exec("INSERT INTO settings (key,value) VALUES ('version','".COMIC_DB_VERSION."');");
-      
       $this->db->exec("INSERT INTO settings (key,value) VALUES ('cache_folder','cache');"); // temporary extracted pages and thumbnails
       $this->db->exec("INSERT INTO settings (key,value) VALUES ('covers_folder','covers');"); 
       $this->db->exec("INSERT INTO settings (key,value) VALUES ('last_scan_time','');");
@@ -332,15 +372,46 @@ class ComicsDB
     
     if ($version < 3)
     {
-      // $options["comicsfolder"] is no longer stored in the database.
+      // Logging is no longer stored in the database, it is now placed in log files.
       $this->db->exec("DROP TABLE log;");
-      $this->db->exec("VACUUM;");
-      
+    }
+    
+    if ($version < 4)
+    {
+      // Add missing ComicRack fields found in ComicDB.xml database but not in the per comic ComicInfo.xml.
+      $this->db->exec("ALTER TABLE ComicInfo ADD COLUMN Id TEXT NOT NULL DEFAULT ''");
+      $this->db->exec("ALTER TABLE ComicInfo ADD COLUMN File TEXT NOT NULL DEFAULT ''");
+      $this->db->exec("ALTER TABLE ComicInfo ADD COLUMN Added TEXT NOT NULL DEFAULT ''"); // date
+      $this->db->exec("ALTER TABLE ComicInfo ADD COLUMN Opened TEXT NOT NULL DEFAULT ''"); // date
+      $this->db->exec("ALTER TABLE ComicInfo ADD COLUMN OpenCount INTEGER NOT NULL DEFAULT 0");
+      $this->db->exec("ALTER TABLE ComicInfo ADD COLUMN LastOpenedFromListId TEXT NOT NULL DEFAULT ''");
+      $this->db->exec("ALTER TABLE ComicInfo ADD COLUMN FileSize INTEGER NOT NULL DEFAULT -1");
+      $this->db->exec("ALTER TABLE ComicInfo ADD COLUMN Missing INTEGER NOT NULL DEFAULT 0"); // boolean
+      $this->db->exec("ALTER TABLE ComicInfo ADD COLUMN FileModifiedTime TEXT NOT NULL DEFAULT ''"); // date
+      $this->db->exec("ALTER TABLE ComicInfo ADD COLUMN FileCreationTime TEXT NOT NULL DEFAULT ''"); // date
+      $this->db->exec("ALTER TABLE ComicInfo ADD COLUMN CurrentPage INTEGER NOT NULL DEFAULT -1");
+      $this->db->exec("ALTER TABLE ComicInfo ADD COLUMN LastPageRead INTEGER NOT NULL DEFAULT -1");
+
+      $this->db->exec("CREATE TABLE WatchFolder(
+          Folder TEXT NOT NULL DEFAULT '',
+          Watch INTEGER NOT NULL DEFAULT 0
+        );");
+        
+      $this->db->exec("CREATE TABLE BlackList(
+          File TEXT NOT NULL DEFAULT ''
+        );");
+        
+        
+      // Convert all relative filenames to absolute filenames using the first entry in $options["folders"] as folder
+      $this->db->exec("UPDATE comic SET filename = '". $options["folders"][0]."'||filename");
+      $this->db->exec("UPDATE ComicInfo SET File = (SELECT filename FROM comic WHERE comic.Id == ComicInfo.ComicId)");
     }
     
     if ($version < COMIC_DB_VERSION)
     {
       $this->db->exec("UPDATE settings SET value='".COMIC_DB_VERSION."' WHERE key='version';");
+      
+      $this->db->exec("VACUUM;");
       
       DoLog(SL_INFO, "UpdateDatabase", "Database updated to version ". COMIC_DB_VERSION);
     }

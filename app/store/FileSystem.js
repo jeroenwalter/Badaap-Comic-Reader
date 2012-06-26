@@ -28,8 +28,10 @@ Ext.define('Comic.store.FileSystem', {
     storeId: 'FileSystem',
     defaultRootProperty: 'items',
     nodeParam: 'id',
-    defaultRootId: "",
-    
+    defaultRootId: 'root',
+    root: {
+      id: 'root'
+    },
     /* sorterFn is not triggered correctly, or just doesn't sort correctly.
        For now, let the server sort the items.
     
